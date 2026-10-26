@@ -1,0 +1,609 @@
+resources:
+  genie_spaces:
+    nyc_taxi_trip_analytics:
+      title: "NYC Taxi Trip Analytics"
+      description: "Explore NYC yellow taxi trip data including fares, distances, and pickup/dropoff locations by ZIP code. Answer questions about trip patterns, fare ranges, busiest zones, and time-of-day trends across 21,000+ rides."
+      warehouse_id: ${var.warehouse_id}
+      parent_path: /Workspace/Shared
+      # Exported verbatim from space 01f1cbd25f651306b99fbf75526250c1; only the table
+      # reference is parameterized. Kept inline (not file_path) because bundle variables
+      # are not interpolated inside a referenced .geniespace.json.
+      serialized_space: |
+        {
+          "benchmarks": {
+            "questions": [
+              {
+                "answer": [
+                  {
+                    "content": [
+                      "SELECT pickup_zip, COUNT(*) AS trip_count FROM ${var.catalog}.${var.schema}.trips GROUP BY pickup_zip ORDER BY trip_count DESC"
+                    ],
+                    "format": "SQL"
+                  }
+                ],
+                "id": "dd4a57d86e222746c8d600b9d320e5a8",
+                "question": [
+                  "Which pickup zip codes have the most trips?"
+                ]
+              },
+              {
+                "answer": [
+                  {
+                    "content": [
+                      "SELECT pickup_zip, dropoff_zip, COUNT(*) AS trip_count FROM ${var.catalog}.${var.schema}.trips GROUP BY pickup_zip, dropoff_zip ORDER BY trip_count DESC LIMIT 10"
+                    ],
+                    "format": "SQL"
+                  }
+                ],
+                "id": "ca9bb91f1243b704a0450ffcb35ee237",
+                "question": [
+                  "What are the top 10 most common pickup zip to dropoff zip routes by number of trips?"
+                ]
+              },
+              {
+                "answer": [
+                  {
+                    "content": [
+                      "SELECT dropoff_zip, COUNT(*) AS trip_count, SUM(fare_amount) AS total_fare_revenue FROM ${var.catalog}.${var.schema}.trips GROUP BY dropoff_zip ORDER BY total_fare_revenue DESC"
+                    ],
+                    "format": "SQL"
+                  }
+                ],
+                "id": "bbd7f9d1373b65d4b13b78f13fe51262",
+                "question": [
+                  "What is the total number of trips and total fare revenue by dropoff zip code?"
+                ]
+              },
+              {
+                "answer": [
+                  {
+                    "content": [
+                      "SELECT pickup_zip, AVG(trip_distance) AS avg_trip_distance FROM ${var.catalog}.${var.schema}.trips GROUP BY pickup_zip ORDER BY avg_trip_distance DESC"
+                    ],
+                    "format": "SQL"
+                  }
+                ],
+                "id": "b5418833dd07324763d9ad8c8794750b",
+                "question": [
+                  "What is the average trip distance by pickup zip code?"
+                ]
+              },
+              {
+                "answer": [
+                  {
+                    "content": [
+                      "SELECT MIN(fare_amount) AS min_fare, MAX(fare_amount) AS max_fare FROM ${var.catalog}.${var.schema}.trips"
+                    ],
+                    "format": "SQL"
+                  }
+                ],
+                "id": "b198dc6ea26d7b1906f2bed788ca05c3",
+                "question": [
+                  "What are the minimum and maximum fare amounts?"
+                ]
+              },
+              {
+                "answer": [
+                  {
+                    "content": [
+                      "SELECT MIN(trip_distance) AS min_distance, PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY trip_distance) AS p25_distance, PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY trip_distance) AS median_distance, PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY trip_distance) AS p75_distance, MAX(trip_distance) AS max_distance FROM ${var.catalog}.${var.schema}.trips"
+                    ],
+                    "format": "SQL"
+                  }
+                ],
+                "id": "88a418ac235f9d41b5fc466ec58636cb",
+                "question": [
+                  "What is the distribution of trip distances — show the minimum, 25th percentile, median, 75th percentile, and maximum?"
+                ]
+              },
+              {
+                "answer": [
+                  {
+                    "content": [
+                      "SELECT AVG(fare_amount) AS avg_fare, AVG(trip_distance) AS avg_distance FROM ${var.catalog}.${var.schema}.trips WHERE trip_distance > 5"
+                    ],
+                    "format": "SQL"
+                  }
+                ],
+                "id": "3f9851678cd9fbb83399c8ced016449f",
+                "question": [
+                  "What is the average fare amount and average trip distance for trips longer than 5 miles?"
+                ]
+              },
+              {
+                "answer": [
+                  {
+                    "content": [
+                      "SELECT HOUR(tpep_pickup_datetime) AS hour_of_day, AVG(fare_amount) AS avg_fare FROM ${var.catalog}.${var.schema}.trips GROUP BY HOUR(tpep_pickup_datetime) ORDER BY hour_of_day"
+                    ],
+                    "format": "SQL"
+                  }
+                ],
+                "id": "38e9936d8c8e40949c5f82135c4dbc53",
+                "question": [
+                  "How does average fare amount vary by hour of day?"
+                ]
+              },
+              {
+                "answer": [
+                  {
+                    "content": [
+                      "SELECT PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY (UNIX_TIMESTAMP(tpep_dropoff_datetime) - UNIX_TIMESTAMP(tpep_pickup_datetime)) / 60.0) AS median_trip_duration_minutes FROM ${var.catalog}.${var.schema}.trips"
+                    ],
+                    "format": "SQL"
+                  }
+                ],
+                "id": "20f5d1601ed3e7154c1fd7cdd73e6c86",
+                "question": [
+                  "What is the median trip duration in minutes?"
+                ]
+              },
+              {
+                "answer": [
+                  {
+                    "content": [
+                      "SELECT DAYOFWEEK(tpep_pickup_datetime) AS day_of_week, DATE_FORMAT(tpep_pickup_datetime, 'EEEE') AS day_name, COUNT(*) AS trip_count, AVG(fare_amount) AS avg_fare FROM ${var.catalog}.${var.schema}.trips GROUP BY DAYOFWEEK(tpep_pickup_datetime), DATE_FORMAT(tpep_pickup_datetime, 'EEEE') ORDER BY day_of_week"
+                    ],
+                    "format": "SQL"
+                  }
+                ],
+                "id": "1d60261bd056cc5a72a7635f9914c4e6",
+                "question": [
+                  "How many trips were taken each day of the week, and what was the average fare for each day?"
+                ]
+              }
+            ]
+          },
+          "config": {
+            "sample_questions": [
+              {
+                "id": "310a933f2990fb157d662c0f47c4f1be",
+                "question": [
+                  "What is the median trip duration in minutes?"
+                ]
+              },
+              {
+                "id": "54da985444907a73465235cf534b7726",
+                "question": [
+                  "Which pickup ZIP codes have the highest average fare amount?"
+                ]
+              },
+              {
+                "id": "6b211e163445137888af21d89c68b4b6",
+                "question": [
+                  "How does average trip distance vary by hour of day?"
+                ]
+              },
+              {
+                "id": "be2fd38bbd7e6fc8ec5de3c161e0799a",
+                "question": [
+                  "What is the distribution of trip distances — how many trips are under 1 mile, 1–5 miles, and over 5 miles?"
+                ]
+              },
+              {
+                "id": "ebdd10eeba771da15fa851444180e10b",
+                "question": [
+                  "What are the busiest pickup ZIP codes by number of trips?"
+                ]
+              }
+            ]
+          },
+          "data_sources": {
+            "tables": [
+              {
+                "column_configs": [
+                  {
+                    "column_name": "dropoff_zip",
+                    "description": [
+                      "US ZIP code of the location where the passenger was dropped off. Covers 205 distinct dropoff zones across NYC."
+                    ],
+                    "enable_entity_matching": true,
+                    "enable_format_assistance": true
+                  },
+                  {
+                    "column_name": "fare_amount",
+                    "description": [
+                      "The base fare charged for the trip in US dollars, as calculated by the taxi meter. Does not include tips or surcharges."
+                    ],
+                    "enable_entity_matching": true,
+                    "enable_format_assistance": true
+                  },
+                  {
+                    "column_name": "pickup_zip",
+                    "description": [
+                      "US ZIP code of the location where the passenger was picked up. Covers 128 distinct pickup zones across NYC."
+                    ],
+                    "enable_entity_matching": true,
+                    "enable_format_assistance": true
+                  },
+                  {
+                    "column_name": "tpep_dropoff_datetime",
+                    "description": [
+                      "Date and time when the taxi passenger was dropped off and the trip ended."
+                    ],
+                    "enable_entity_matching": true,
+                    "enable_format_assistance": true
+                  },
+                  {
+                    "column_name": "tpep_pickup_datetime",
+                    "description": [
+                      "Date and time when the taxi passenger was picked up and the trip began."
+                    ],
+                    "enable_entity_matching": true,
+                    "enable_format_assistance": true
+                  },
+                  {
+                    "column_name": "trip_distance",
+                    "description": [
+                      "Total distance of the taxi trip in miles, as recorded by the taxi meter."
+                    ],
+                    "enable_entity_matching": true,
+                    "enable_format_assistance": true
+                  }
+                ],
+                "description": [
+                  "Contains individual NYC yellow taxi trip records, including pickup and dropoff times, trip distance, fare charged, and ZIP codes for pickup and dropoff locations. Covers 21,932 trips with no missing values, supporting analysis of fare trends, trip durations, distances, and busy pickup zones."
+                ],
+                "identifier": "${var.catalog}.${var.schema}.trips"
+              }
+            ]
+          },
+          "instructions": {
+            "example_question_sqls": [
+              {
+                "id": "02824b0665a66b0dec2974ef71dade00",
+                "parameters": [
+                  {
+                    "default_value": {
+                      "values": [
+                        "2016-01-20"
+                      ]
+                    },
+                    "description": [
+                      "End date (inclusive) for the date range filter."
+                    ],
+                    "name": "end_date",
+                    "type_hint": "DATE"
+                  },
+                  {
+                    "default_value": {
+                      "values": [
+                        "2016-01-10"
+                      ]
+                    },
+                    "description": [
+                      "Start date (inclusive) for the date range filter."
+                    ],
+                    "name": "start_date",
+                    "type_hint": "DATE"
+                  }
+                ],
+                "question": [
+                  "How many trips and what was the total fare revenue between 2016-01-10 and 2016-01-20?"
+                ],
+                "sql": [
+                  "SELECT COUNT(*) AS trip_count, ROUND(SUM(fare_amount), 2) AS total_fare_revenue, ROUND(AVG(fare_amount), 2) AS avg_fare FROM ${var.catalog}.${var.schema}.trips WHERE DATE(tpep_pickup_datetime) BETWEEN :start_date AND :end_date"
+                ],
+                "usage_guidance": [
+                  "Use for revenue aggregation or trip counts over a user-specified date range."
+                ]
+              },
+              {
+                "id": "0833ce450faf86f5a6136656e587e55a",
+                "parameters": [
+                  {
+                    "default_value": {
+                      "values": [
+                        "5.0"
+                      ]
+                    },
+                    "description": [
+                      "Minimum trip distance in miles to include in the results."
+                    ],
+                    "name": "min_distance",
+                    "type_hint": "DOUBLE"
+                  }
+                ],
+                "question": [
+                  "What is the average fare for trips longer than 5 miles?"
+                ],
+                "sql": [
+                  "SELECT ROUND(AVG(fare_amount), 2) AS avg_fare, ROUND(AVG(trip_distance), 2) AS avg_distance_miles, COUNT(*) AS trip_count FROM ${var.catalog}.${var.schema}.trips WHERE trip_distance > :min_distance"
+                ],
+                "usage_guidance": [
+                  "Use when filtering trips by a minimum distance threshold to analyze fares or counts."
+                ]
+              },
+              {
+                "id": "09ecd0f26d68311f8ade25c2499dce24",
+                "parameters": [
+                  {
+                    "default_value": {
+                      "values": [
+                        "10001"
+                      ]
+                    },
+                    "description": [
+                      "The pickup zip code to analyze fares and distances for."
+                    ],
+                    "name": "pickup_zip",
+                    "type_hint": "INTEGER"
+                  }
+                ],
+                "question": [
+                  "What is the average fare and average trip distance for trips starting from zip code 10001?"
+                ],
+                "sql": [
+                  "SELECT pickup_zip, ROUND(AVG(fare_amount), 2) AS avg_fare, ROUND(AVG(trip_distance), 2) AS avg_distance_miles, COUNT(*) AS trip_count FROM ${var.catalog}.${var.schema}.trips WHERE pickup_zip = :pickup_zip GROUP BY pickup_zip"
+                ],
+                "usage_guidance": [
+                  "Use when a user wants fare and distance metrics for a specific pickup zip code."
+                ]
+              },
+              {
+                "id": "0bd7cfee3d29502ca373a1b34c4a17cd",
+                "question": [
+                  "How does the average fare amount vary by hour of the day?"
+                ],
+                "sql": [
+                  "SELECT HOUR(tpep_pickup_datetime) AS hour_of_day, ROUND(AVG(fare_amount), 2) AS avg_fare, COUNT(*) AS trip_count FROM ${var.catalog}.${var.schema}.trips GROUP BY hour_of_day ORDER BY hour_of_day"
+                ],
+                "usage_guidance": [
+                  "Use for fare variation by time of day or hourly trend analysis."
+                ]
+              },
+              {
+                "id": "11128dc6604c6b540e1850095fd159b4",
+                "parameters": [
+                  {
+                    "default_value": {
+                      "values": [
+                        "2016-01-15"
+                      ]
+                    },
+                    "description": [
+                      "The date (YYYY-MM-DD) to filter trips by pickup date."
+                    ],
+                    "name": "pickup_date",
+                    "type_hint": "DATE"
+                  }
+                ],
+                "question": [
+                  "What is the median trip duration in minutes for trips picked up on 2016-01-15?"
+                ],
+                "sql": [
+                  "SELECT PERCENTILE(UNIX_TIMESTAMP(tpep_dropoff_datetime) - UNIX_TIMESTAMP(tpep_pickup_datetime), 0.5) / 60.0 AS median_trip_duration_minutes, COUNT(*) AS trip_count FROM ${var.catalog}.${var.schema}.trips WHERE DATE(tpep_pickup_datetime) = :pickup_date"
+                ],
+                "usage_guidance": [
+                  "Use when filtering trip duration metrics by a specific pickup date."
+                ]
+              },
+              {
+                "id": "2211e909130e29c6b02876596b6877c7",
+                "question": [
+                  "What is the median trip duration in minutes across all NYC taxi trips?"
+                ],
+                "sql": [
+                  "SELECT PERCENTILE(UNIX_TIMESTAMP(tpep_dropoff_datetime) - UNIX_TIMESTAMP(tpep_pickup_datetime), 0.5) / 60.0 AS median_trip_duration_minutes FROM ${var.catalog}.${var.schema}.trips"
+                ],
+                "usage_guidance": [
+                  "Use for any question about median or percentile trip duration across all trips."
+                ]
+              },
+              {
+                "id": "55cc5ed06883be6ccd63c5d02438f4b8",
+                "question": [
+                  "What are the top 10 most common pickup-to-dropoff zip code pairs by number of trips?"
+                ],
+                "sql": [
+                  "SELECT pickup_zip, dropoff_zip, COUNT(*) AS trip_count, ROUND(AVG(fare_amount), 2) AS avg_fare, ROUND(AVG(trip_distance), 2) AS avg_distance_miles FROM ${var.catalog}.${var.schema}.trips GROUP BY pickup_zip, dropoff_zip ORDER BY trip_count DESC LIMIT 10"
+                ],
+                "usage_guidance": [
+                  "Use for top-N route analysis or questions about the most popular origin-destination zip code pairs."
+                ]
+              },
+              {
+                "id": "5eac7f9edc903e28a50148275e8cfeeb",
+                "parameters": [
+                  {
+                    "default_value": {
+                      "values": [
+                        "10003"
+                      ]
+                    },
+                    "description": [
+                      "The pickup zip code to filter trips by."
+                    ],
+                    "name": "pickup_zip",
+                    "type_hint": "INTEGER"
+                  }
+                ],
+                "question": [
+                  "How many trips were taken from pickup zip code 10003?"
+                ],
+                "sql": [
+                  "SELECT COUNT(*) AS trip_count FROM ${var.catalog}.${var.schema}.trips WHERE pickup_zip = :pickup_zip"
+                ],
+                "usage_guidance": [
+                  "Use when filtering trips by a specific pickup zip code."
+                ]
+              },
+              {
+                "id": "87e811054a507cfc0f7a2f863b9d6964",
+                "question": [
+                  "What is the distribution of trip distances — broken into short (under 2 miles), medium (2–5 miles), and long (over 5 miles)?"
+                ],
+                "sql": [
+                  "SELECT CASE WHEN trip_distance < 2 THEN 'Short (< 2 miles)' WHEN trip_distance BETWEEN 2 AND 5 THEN 'Medium (2–5 miles)' ELSE 'Long (> 5 miles)' END AS distance_bucket, COUNT(*) AS trip_count, ROUND(COUNT(*) * 100.0 / SUM(COUNT(*)) OVER (), 1) AS pct_of_total FROM ${var.catalog}.${var.schema}.trips GROUP BY 1 ORDER BY 2 DESC"
+                ],
+                "usage_guidance": [
+                  "Use for trip distance distribution or bucketing questions."
+                ]
+              },
+              {
+                "id": "bdab7ced0b4dd1865137ee4b66a5c30d",
+                "question": [
+                  "What is the average trip distance for each pickup zip code?"
+                ],
+                "sql": [
+                  "SELECT pickup_zip, ROUND(AVG(trip_distance), 2) AS avg_trip_distance_miles, COUNT(*) AS trip_count FROM ${var.catalog}.${var.schema}.trips GROUP BY pickup_zip ORDER BY avg_trip_distance_miles DESC"
+                ],
+                "usage_guidance": [
+                  "Use when a business user asks about average distance grouped by pickup zip code or location."
+                ]
+              },
+              {
+                "id": "c56d417c8acb50a6a1922f67fccd0eef",
+                "question": [
+                  "What are the minimum, maximum, and average fare amounts for all NYC taxi trips?"
+                ],
+                "sql": [
+                  "SELECT MIN(fare_amount) AS min_fare, MAX(fare_amount) AS max_fare, AVG(fare_amount) AS avg_fare FROM ${var.catalog}.${var.schema}.trips"
+                ],
+                "usage_guidance": [
+                  "Use for summary fare statistics (min, max, average) across the entire dataset."
+                ]
+              },
+              {
+                "id": "ebbe84f913cec2aa5bcdcd778e61e475",
+                "question": [
+                  "Which are the top 10 busiest pickup zip codes by number of trips?"
+                ],
+                "sql": [
+                  "SELECT pickup_zip, COUNT(*) AS trip_count FROM ${var.catalog}.${var.schema}.trips GROUP BY pickup_zip ORDER BY trip_count DESC LIMIT 10"
+                ],
+                "usage_guidance": [
+                  "Use for any top-N ranking question about busiest or most popular pickup locations."
+                ]
+              }
+            ],
+            "sql_snippets": {
+              "expressions": [
+                {
+                  "display_name": "Time of Day Category",
+                  "id": "115d548ac64621159935f547d2cd5e71",
+                  "sql": [
+                    "CASE WHEN HOUR(${var.catalog}.${var.schema}.trips.tpep_pickup_datetime) BETWEEN 6 AND 11 THEN 'Morning' WHEN HOUR(${var.catalog}.${var.schema}.trips.tpep_pickup_datetime) BETWEEN 12 AND 16 THEN 'Afternoon' WHEN HOUR(${var.catalog}.${var.schema}.trips.tpep_pickup_datetime) BETWEEN 17 AND 20 THEN 'Evening' ELSE 'Night' END"
+                  ]
+                },
+                {
+                  "display_name": "Trip Duration (Minutes)",
+                  "id": "83d0398f2333097c1b9cd3d32c5d800d",
+                  "sql": [
+                    "CAST((unix_timestamp(${var.catalog}.${var.schema}.trips.tpep_dropoff_datetime) - unix_timestamp(${var.catalog}.${var.schema}.trips.tpep_pickup_datetime)) / 60 AS DOUBLE)"
+                  ]
+                },
+                {
+                  "display_name": "Pickup Hour of Day",
+                  "id": "fc1215571c728dfe59feb5bc0392e6cd",
+                  "sql": [
+                    "HOUR(${var.catalog}.${var.schema}.trips.tpep_pickup_datetime)"
+                  ]
+                }
+              ],
+              "filters": [
+                {
+                  "display_name": "Short Trips (Under 2 Miles)",
+                  "id": "013e4cbca42177c3346cf1cc17170178",
+                  "sql": [
+                    "${var.catalog}.${var.schema}.trips.trip_distance < 2.0"
+                  ]
+                },
+                {
+                  "display_name": "High Fare Trips (Over $50)",
+                  "id": "68ce3c7e5cb99b2a109b2fe57475a861",
+                  "sql": [
+                    "${var.catalog}.${var.schema}.trips.fare_amount > 50.0"
+                  ]
+                },
+                {
+                  "display_name": "Trips in the Last 30 Days",
+                  "id": "880a661e9e649abc1f4e3dae2240c39a",
+                  "sql": [
+                    "${var.catalog}.${var.schema}.trips.tpep_pickup_datetime >= DATEADD(DAY, -30, CURRENT_DATE())"
+                  ]
+                },
+                {
+                  "display_name": "Weekend Trips Only",
+                  "id": "8ef21b15342223f586fa029ac8959a2f",
+                  "sql": [
+                    "DAYOFWEEK(${var.catalog}.${var.schema}.trips.tpep_pickup_datetime) IN (1, 7)"
+                  ]
+                },
+                {
+                  "display_name": "Rush Hour Pickups (7–9 AM or 5–7 PM)",
+                  "id": "cea217a267fb32c159b9288c8a92f084",
+                  "sql": [
+                    "HOUR(${var.catalog}.${var.schema}.trips.tpep_pickup_datetime) BETWEEN 7 AND 9 OR HOUR(${var.catalog}.${var.schema}.trips.tpep_pickup_datetime) BETWEEN 17 AND 19"
+                  ]
+                }
+              ],
+              "measures": [
+                {
+                  "display_name": "Average Trip Distance (Miles)",
+                  "id": "06b8728581af9fda73c836d89edddb1e",
+                  "sql": [
+                    "AVG(${var.catalog}.${var.schema}.trips.trip_distance)"
+                  ]
+                },
+                {
+                  "display_name": "Median Trip Duration (Minutes)",
+                  "id": "51b6fbb1f084457f32e0ec1a9000b42d",
+                  "sql": [
+                    "PERCENTILE(CAST((unix_timestamp(${var.catalog}.${var.schema}.trips.tpep_dropoff_datetime) - unix_timestamp(${var.catalog}.${var.schema}.trips.tpep_pickup_datetime)) / 60 AS DOUBLE), 0.5)"
+                  ]
+                },
+                {
+                  "display_name": "Total Fare Revenue",
+                  "id": "7c3a55c692af4b47943a267591493f21",
+                  "sql": [
+                    "SUM(${var.catalog}.${var.schema}.trips.fare_amount)"
+                  ]
+                },
+                {
+                  "display_name": "Average Fare Amount",
+                  "id": "7db4f55bd9b35d6062e0c5c508e13b90",
+                  "sql": [
+                    "AVG(${var.catalog}.${var.schema}.trips.fare_amount)"
+                  ]
+                },
+                {
+                  "display_name": "Total Number of Trips",
+                  "id": "c4e6be9044f410fb152726913a841789",
+                  "sql": [
+                    "COUNT(*)"
+                  ]
+                }
+              ]
+            },
+            "text_instructions": [
+              {
+                "content": [
+                  "## PURPOSE\n",
+                  "- Answer aggregate trip performance questions for business users exploring NYC yellow taxi data.\n",
+                  "- Covers fares, distances, trip durations, and pickup/dropoff ZIP code patterns.\n",
+                  "## DISAMBIGUATION\n",
+                  "- 'Trip duration' means the elapsed time between pickup and dropoff datetimes.\n",
+                  "- 'Zone' or 'area' refers to ZIP code unless the user specifies otherwise.\n",
+                  "- When the user asks about trends without a time range, ask whether they mean by hour of day, day of week, or a specific date range.\n",
+                  "- 'Fare' refers to fare_amount only; there are no tip, toll, or total amount columns in this dataset.\n",
+                  "## DATA QUALITY NOTES\n",
+                  "- All 6 columns have zero nulls across 21,932 rows — no missing-value caveats needed.\n",
+                  "- fare_amount has only 161 distinct values; it is metered in fixed increments, not a continuous variable.\n",
+                  "- There are 128 distinct pickup ZIPs and 205 distinct dropoff ZIPs — dropoff coverage is broader.\n",
+                  "- This dataset is a sample and may not represent all NYC taxi trips.\n",
+                  "## CONSTRAINTS\n",
+                  "- Do not expose raw datetime values for individual rows; always aggregate.\n",
+                  "- Do not imply this data is real-time or current — it is a static sample.\n",
+                  "- There are no passenger, driver, or payment identity columns; do not suggest filtering by individual riders or drivers.\n",
+                  "## Instructions you must follow when providing summaries\n",
+                  "- Round monetary values to 2 decimal places and distances to 2 decimal places.\n",
+                  "- Round durations to the nearest whole minute.\n",
+                  "- Always note that results are based on a sample of ~21,900 NYC taxi trips.\n"
+                ],
+                "id": "fa229ea0aa1135a7246df80379ce4357"
+              }
+            ]
+          },
+          "version": 2
+        }

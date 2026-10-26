@@ -1,0 +1,42 @@
+# Bundle entrypoint. Keep this file thin — delegate resource definitions to resources/**/*.yml.
+# Docs: https://docs.databricks.com/aws/en/dev-tools/bundles/settings
+#
+# NOTE: dev target only. staging/prod targets and CI/CD are intentionally omitted while
+# dabs-migrator is paused for staging/prod use — see
+# https://github.com/databricks-solutions/technical-services-solutions/issues?q=is%3Aissue+is%3Aopen+dabs-migrator
+
+bundle:
+  name: nyc_taxi_trip_analytics
+
+include:
+  - resources/**/*.yml
+
+variables:
+  catalog:
+    description: Catalog holding the trips table queried by the Genie space
+    default: "samples"
+
+  schema:
+    description: Schema holding the trips table queried by the Genie space
+    default: "nyctaxi"
+
+  warehouse_id:
+    description: SQL warehouse that runs Genie queries
+    lookup:
+      warehouse: "Serverless Starter Warehouse"
+
+targets:
+  dev:
+    mode: development
+    default: true
+    workspace:
+      host: https://adb-7405617603277213.13.azuredatabricks.net    
+    variables:
+      warehouse_id: "8a982b040b33ab98"
+
+  prod:
+    mode: production
+    workspace:
+      host: https://oneenvazure.azuredatabricks.net/?o=7405606429897362
+    variables:
+      warehouse_id: "7df345678057f327"
